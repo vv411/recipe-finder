@@ -13,7 +13,7 @@ function Dashboard() {
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [modalOpen, setModalOpen] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [areas, setAreas] = useState([]);
@@ -60,18 +60,18 @@ function Dashboard() {
   };
 
   const handleCardClick = (recipe) => {
-    fetchMealById(recipe.idMeal, setSelectedRecipe, setLoading); // Call refactored function
+    fetchMealById(recipe.idMeal, setSelectedRecipe, setLoading, setModalOpen);
   };
 
+  const handleSurpriseMeClick = () => {
+    fetchRandomMeal(setRecipes, setLoading, setError);
+  };
+  
   const handleSubmit = (event) => {
     event.preventDefault();
     if (!query){
       setError("Search field cannot be blank.");
     }
-  };
-
-  const handleSurpriseMeClick = () => {
-    fetchRandomMeal(setRecipes, setLoading, setError); // Call refactored function
   };
 
   return (

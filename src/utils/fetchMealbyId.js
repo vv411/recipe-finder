@@ -1,4 +1,4 @@
-export const fetchMealById = async (id, setSelectedRecipe, setLoading) => {
+export const fetchMealById = async (id, setSelectedRecipe, setLoading, setModalOpen) => {
     setLoading(true);
     try {
       const response = await fetch(
@@ -15,6 +15,7 @@ export const fetchMealById = async (id, setSelectedRecipe, setLoading) => {
   
       // Set the selected recipe
       setSelectedRecipe(data.meals[0]);
+      setModalOpen(true);
     } catch (error) {
       console.error("Error fetching meal by ID:", error);
       setSelectedRecipe(null);
