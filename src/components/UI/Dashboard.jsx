@@ -1,26 +1,24 @@
-import { useState , useEffect } from "react";
+import { useState, useEffect } from "react";
 import RecipeCard from "../RecipeCard";
 import RecipeModal from "../RecipeModal";
 import Dropdown from "./elements/Dropdown";
+import { useFetchMeals } from "../../hooks/useFetchMeals";
 
 function Dashboard() {
   const [query, setQuery] = useState("");
   const [recipes, setRecipes] = useState([]);
   const [selectedRecipe, setSelectedRecipe] = useState(null);
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [modalOpen, setModalOpen] = useState(true)
-
+  const [modalOpen, setModalOpen] = useState(true);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('');
-
   const [areas, setAreas] = useState([]);
   const [selectedArea, setSelectedArea] = useState('');
 
   const MEAL_DB_API_ROOT_URL = "https://www.themealdb.com/api/json/v1/1/";
 
-  //fetch categories and areas on first load
+  // Fetch categories and areas on first load
   useEffect(() => {
     const fetchCategoriesAndAreas = async () => {
       try {
@@ -40,9 +38,9 @@ function Dashboard() {
     fetchCategoriesAndAreas();
   }, []);
 
-  //search meals whenever the query or filter changes
+  // Search meals whenever the query or filter changes
   useEffect(() => {
-    fetchMeals();
+    useFetchMeals({ query, selectedCategory, selectedArea, setLoading, setRecipes, setError });
   }, [query, selectedCategory, selectedArea]);
 
   const applyCategoryFilter = (event) => {
@@ -86,57 +84,6 @@ function Dashboard() {
     }
   };
 
-  // Fetch meals based on query, areaFilter, and categoryFilter
-  const fetchMeals = async () => {
-    setLoading(true);
-
-    //Don't show any recipes if search box is empty
-    if (!query) {
-      setRecipes([]);
-      return;
-    }
-
-    try {
-      // API URLs for meal search and ingredient search
-      const mealUrl = MEAL_DB_API_ROOT_URL + `search.php?s=${query}`;
-      const ingredientUrl = MEAL_DB_API_ROOT_URL + `filter.php?i=${query}`;  
-
-      // Fetch results from both the meal and ingredient endpoints concurrently
-      const [mealResponse, ingredientResponse] = await Promise.all([
-        fetch(mealUrl),
-        fetch(ingredientUrl),
-      ]);
-
-      const mealData = await mealResponse.json();
-      const ingredientData = await ingredientResponse.json();
-
-      const mealsArr = mealData.meals || [];
-      const ingredientsArr = ingredientData.meals || [];
-
-      // Combine results from both queries, making sure there are no duplicates
-      let combinedResults = [
-        ...mealsArr,
-        ...ingredientsArr.filter(item2 => !mealsArr.some(item1 => item1.idMeal === item2.idMeal))
-      ];
-
-      if (combinedResults.length > 0) {
-        if (selectedCategory != "") combinedResults = combinedResults.filter(item => item.strCategory == selectedCategory);
-        if (selectedArea != "") combinedResults = combinedResults.filter(item => item.strArea == selectedArea);
-
-        setRecipes(combinedResults);
-        setError("");
-      } else {
-        setRecipes([]);
-      }
-    } catch (err) {
-      setError("Error: " + err);
-      setRecipes([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Handle Surprise Me Button
   const handleSurpriseMe = async () => {
     setLoading(true);
     setError("");
@@ -177,15 +124,12 @@ function Dashboard() {
 
       {/* Filter options */}
       <div className="block lg:inline-block m-4">
-        {/* dopdown for Categories */}
         <Dropdown
           value={selectedCategory}
           onChange={applyCategoryFilter}
           options={categories}
           defaultLabel="All Categories"
         />
-
-        {/* dropdown for Areas */}
         <Dropdown
           value={selectedArea}
           onChange={applyAreaFilter}
@@ -209,7 +153,7 @@ function Dashboard() {
       {/* No results found */}
       {recipes.length === 0 && !loading && query && (
         <p className="text-center text-gray-500">No results found.</p>
-      )}    
+      )}
 
       <RecipeModal 
         recipe={selectedRecipe} 
