@@ -59,8 +59,32 @@ function Dashboard() {
   };
 
   const handleCardClick = (recipe) => { 
-    setSelectedRecipe(recipe); 
-    setModalOpen(true); 
+    fetchMealById(recipe.idMeal);
+  };
+
+  const fetchMealById = async (id) => {
+    try {
+      console.log(id);
+      const response = await fetch(
+        MEAL_DB_API_ROOT_URL + "lookup.php?i=" + id
+      );
+      const data = await response.json();
+      const meals = data.meals;
+
+      setSelectedRecipe(meals[0]);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+      setModalOpen(true); 
+    }
+  }
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    if (!query){
+      setError("Please enter something in the search")
+    }
   };
 
   // Fetch meals based on query, areaFilter, and categoryFilter
@@ -121,9 +145,9 @@ function Dashboard() {
         MEAL_DB_API_ROOT_URL + "random.php"
       );
       const data = await response.json();
-      const meals = data.meals;
+      const meal = data.meals;
 
-      setRecipes(meals);
+      setRecipes(meal);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -134,17 +158,19 @@ function Dashboard() {
   return (
     <div className="max-w-8xl mx-4 md:mx8 lg:mx-16 p-4 text-center">
       {/* Search bar */}
-      <div>
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search for a recipe or ingredient"
-          className="w-full p-4 md:w-1/2 lg:w-1/4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+      <div className="inline">
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search for a recipe or ingredient"
+            className="w-full p-4 md:w-1/2 lg:w-1/4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </form>
 
         {/* Surprise me button */}
-        <button onClick={handleSurpriseMe} className="p-4 m-4 bg-blue-500 text-white rounded-md">
+        <button onClick={handleSurpriseMe} className="px-4 py-2 m-4 bg-blue-500 text-white rounded-md inline">
           Surprise Me!
         </button>
       </div>

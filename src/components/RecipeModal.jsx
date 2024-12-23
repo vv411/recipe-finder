@@ -15,7 +15,7 @@ const RecipeModal = ({ recipe, open, onClose }) => {
 
   return (
     <Modal open={open} onClose={onClose}>
-      <Box className="p-6 bg-white rounded-lg mx-auto mt-4 max-w-3xl md:max-w-4xl overflow-y-auto max-h-[calc(100vh-24px)] relative">
+      <Box className="p-6 bg-white rounded-lg mx-auto my-4 max-w-3xl md:max-w-4xl overflow-y-auto max-h-[calc(100vh-24px)] relative">
         <div className="p-2 bg-gray-100 rounded-t-lg flex justify-between items-center">
           <Typography variant="h6">Recipe Details</Typography>
           <IconButton
@@ -32,6 +32,8 @@ const RecipeModal = ({ recipe, open, onClose }) => {
         <Typography variant="subtitle1" gutterBottom><strong>Area:</strong> {recipe.strArea}</Typography>
         <img src={recipe.strMealThumb} alt={recipe.strMeal} className="w-full h-80 object-cover rounded-lg mb-4" />
         <Typography variant="h6" className="font-bold mt-4">Ingredients:</Typography>
+
+        {/* List ingredients with quantities */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mb-4">
           {ingredients.map((item, index) => (
             <div key={index}>
