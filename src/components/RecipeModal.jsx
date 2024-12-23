@@ -43,6 +43,7 @@ const RecipeModal = ({ recipe, open, onClose }) => {
         </div>
         <Typography variant="h6" className="font-bold mt-4">Instructions:</Typography>
         <Typography className="mb-4">{recipe.strInstructions}</Typography>
+        {/* Youtube Video */}
         {recipe.strYoutube && recipe.strYoutube.includes('v=') && (
           <div className="mt-4">
             <Typography variant="h6">Video:</Typography>

@@ -49,7 +49,7 @@ function Dashboard() {
     setSelectedCategory(event.target.value);
   }
 
-  const applyAreaFilter = () => {
+  const applyAreaFilter = (event) => {
     setSelectedArea(event.target.value);
   }
 
@@ -117,7 +117,7 @@ function Dashboard() {
       // Combine results from both queries, making sure there are no duplicates
       let combinedResults = [
         ...mealsArr,
-        ...ingredientsArr.filter(item2 => !mealsArr.some(item1 => item1.id === item2.id))
+        ...ingredientsArr.filter(item2 => !mealsArr.some(item1 => item1.idMeal === item2.idMeal))
       ];
 
       if (combinedResults.length > 0) {
