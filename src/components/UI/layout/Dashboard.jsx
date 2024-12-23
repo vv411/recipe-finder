@@ -1,8 +1,11 @@
+// src/components/Dashboard.js
 import { useState, useEffect } from "react";
-import RecipeCard from "../RecipeCard";
-import RecipeModal from "../RecipeModal";
-import Dropdown from "./elements/Dropdown";
-import { useFetchMeals } from "../../hooks/useFetchMeals";
+import RecipeCard from "../../RecipeCard";
+import RecipeModal from "../../RecipeModal";
+import Dropdown from "../elements/Dropdown";
+import { useFetchMeals } from "../../../hooks/useFetchMeals";
+import { fetchMealById } from "../../../utils/fetchMealById";
+import { fetchRandomMeal } from "../../../utils/fetchRandomMeal";
 
 function Dashboard() {
   const [query, setQuery] = useState("");
@@ -56,50 +59,19 @@ function Dashboard() {
     setSelectedRecipe(null);
   };
 
-  const handleCardClick = (recipe) => { 
-    fetchMealById(recipe.idMeal);
+  const handleCardClick = (recipe) => {
+    fetchMealById(recipe.idMeal, setSelectedRecipe, setLoading); // Call refactored function
   };
-
-  const fetchMealById = async (id) => {
-    try {
-      const response = await fetch(
-        MEAL_DB_API_ROOT_URL + "lookup.php?i=" + id
-      );
-      const data = await response.json();
-      const meals = data.meals;
-
-      setSelectedRecipe(meals[0]);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    } finally {
-      setLoading(false);
-      setModalOpen(true); 
-    }
-  }
 
   const handleSubmit = (event) => {
     event.preventDefault();
     if (!query){
-      setError("Search field cannot be blank.")
+      setError("Search field cannot be blank.");
     }
   };
 
-  const handleSurpriseMe = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const response = await fetch(
-        MEAL_DB_API_ROOT_URL + "random.php"
-      );
-      const data = await response.json();
-      const meal = data.meals;
-
-      setRecipes(meal);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    } finally {
-      setLoading(false);
-    }
+  const handleSurpriseMeClick = () => {
+    fetchRandomMeal(setRecipes, setLoading, setError); // Call refactored function
   };
 
   return (
@@ -117,7 +89,7 @@ function Dashboard() {
         </form>
 
         {/* Surprise me button */}
-        <button onClick={handleSurpriseMe} className="px-4 py-2 m-4 bg-blue-500 text-white rounded-md inline">
+        <button onClick={handleSurpriseMeClick} className="px-4 py-2 m-4 bg-blue-500 text-white rounded-md inline">
           Surprise Me!
         </button>
       </div>
