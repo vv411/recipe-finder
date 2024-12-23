@@ -1,4 +1,3 @@
-// src/RecipeSearch.jsx
 import { useState , useEffect } from "react";
 import RecipeCard from "../RecipeCard";
 import RecipeModal from "../RecipeModal";
@@ -65,7 +64,6 @@ function Dashboard() {
 
   const fetchMealById = async (id) => {
     try {
-      console.log(id);
       const response = await fetch(
         MEAL_DB_API_ROOT_URL + "lookup.php?i=" + id
       );
@@ -84,7 +82,7 @@ function Dashboard() {
   const handleSubmit = (event) => {
     event.preventDefault();
     if (!query){
-      setError("Please enter something in the search")
+      setError("Search field cannot be blank.")
     }
   };
 
@@ -141,6 +139,7 @@ function Dashboard() {
   // Handle Surprise Me Button
   const handleSurpriseMe = async () => {
     setLoading(true);
+    setError("");
     try {
       const response = await fetch(
         MEAL_DB_API_ROOT_URL + "random.php"
