@@ -1,24 +1,26 @@
 // src/RecipeSearch.jsx
-import { useState, useEffect } from "react";
+import { useState , useEffect } from "react";
 import RecipeCard from "../RecipeCard";
 import RecipeModal from "../RecipeModal";
-import useFetchMeals from "../../hooks/useFetchMeals";
 
 function Dashboard() {
   const [query, setQuery] = useState("");
+  const [recipes, setRecipes] = useState([]);
   const [selectedRecipe, setSelectedRecipe] = useState(null);
-  const [modalOpen, setModalOpen] = useState(true);
-  const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [areas, setAreas] = useState([]);
-  const [selectedArea, setSelectedArea] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [modalOpen, setModalOpen] = useState(true)
+
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('');
+
+  const [areas, setAreas] = useState([]);
+  const [selectedArea, setSelectedArea] = useState('');
 
   const MEAL_DB_API_ROOT_URL = "https://www.themealdb.com/api/json/v1/1/";
 
-  // Fetch categories and areas on first load
+  //fetch categories and areas on first load
   useEffect(() => {
     const fetchCategoriesAndAreas = async () => {
       try {
@@ -38,30 +40,34 @@ function Dashboard() {
     fetchCategoriesAndAreas();
   }, []);
 
-  // Use the custom hook to fetch meals
-  const { recipes, loading: mealsLoading, error: mealsError } = useFetchMeals(query, selectedCategory, selectedArea);
+  //search meals whenever the query or filter changes
+  useEffect(() => {
+    fetchMeals();
+  }, [query, selectedCategory, selectedArea]);
 
   const applyCategoryFilter = (event) => {
     setSelectedCategory(event.target.value);
-  };
+  }
 
   const applyAreaFilter = (event) => {
     setSelectedArea(event.target.value);
-  };
+  }
 
   const handleCloseModal = () => {
     setModalOpen(false);
     setSelectedRecipe(null);
   };
 
-  const handleCardClick = (recipe) => {
+  const handleCardClick = (recipe) => { 
     fetchMealById(recipe.idMeal);
   };
 
   const fetchMealById = async (id) => {
     try {
       console.log(id);
-      const response = await fetch(MEAL_DB_API_ROOT_URL + "lookup.php?i=" + id);
+      const response = await fetch(
+        MEAL_DB_API_ROOT_URL + "lookup.php?i=" + id
+      );
       const data = await response.json();
       const meals = data.meals;
 
@@ -70,14 +76,64 @@ function Dashboard() {
       console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
-      setModalOpen(true);
+      setModalOpen(true); 
     }
-  };
+  }
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    if (!query){
+      setError("Please enter something in the search")
+    }
+  };
+
+  // Fetch meals based on query, areaFilter, and categoryFilter
+  const fetchMeals = async () => {
+    setLoading(true);
+
+    //Don't show any recipes if search box is empty
     if (!query) {
-      setError("Please enter something in the search");
+      setRecipes([]);
+      return;
+    }
+
+    try {
+      // API URLs for meal search and ingredient search
+      const mealUrl = MEAL_DB_API_ROOT_URL + `search.php?s=${query}`;
+      const ingredientUrl = MEAL_DB_API_ROOT_URL + `filter.php?i=${query}`;  
+
+      // Fetch results from both the meal and ingredient endpoints concurrently
+      const [mealResponse, ingredientResponse] = await Promise.all([
+        fetch(mealUrl),
+        fetch(ingredientUrl),
+      ]);
+
+      const mealData = await mealResponse.json();
+      const ingredientData = await ingredientResponse.json();
+
+      const mealsArr = mealData.meals || [];
+      const ingredientsArr = ingredientData.meals || [];
+
+      // Combine results from both queries, making sure there are no duplicates
+      let combinedResults = [
+        ...mealsArr,
+        ...ingredientsArr.filter(item2 => !mealsArr.some(item1 => item1.idMeal === item2.idMeal))
+      ];
+
+      if (combinedResults.length > 0) {
+        if (selectedCategory != "") combinedResults = combinedResults.filter(item => item.strCategory == selectedCategory);
+        if (selectedArea != "") combinedResults = combinedResults.filter(item => item.strArea == selectedArea);
+
+        setRecipes(combinedResults);
+        setError("");
+      } else {
+        setRecipes([]);
+      }
+    } catch (err) {
+      setError("Error: " + err);
+      setRecipes([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -85,7 +141,9 @@ function Dashboard() {
   const handleSurpriseMe = async () => {
     setLoading(true);
     try {
-      const response = await fetch(MEAL_DB_API_ROOT_URL + "random.php");
+      const response = await fetch(
+        MEAL_DB_API_ROOT_URL + "random.php"
+      );
       const data = await response.json();
       const meal = data.meals;
 
@@ -119,7 +177,11 @@ function Dashboard() {
 
       {/* Filter options */}
       <div className="block lg:inline-block m-4">
-        <select value={selectedCategory} onChange={applyCategoryFilter} className="custom-dropdown">
+        <select
+          value={selectedCategory}
+          onChange={applyCategoryFilter}
+          className="custom-dropdown"
+        >
           <option value="">All Categories</option>
           {categories.map((option) => (
             <option key={option.id} value={option.id}>
@@ -128,7 +190,11 @@ function Dashboard() {
           ))}
         </select>
 
-        <select value={selectedArea} onChange={applyAreaFilter} className="custom-dropdown">
+        <select
+          value={selectedArea}
+          onChange={applyAreaFilter}
+          className="custom-dropdown"
+        >
           <option value="">All Areas</option>
           {areas.map((option) => (
             <option key={option.id} value={option.id}>
@@ -138,19 +204,19 @@ function Dashboard() {
         </select>
       </div>
 
-      {mealsError && <p className="text-red-500">{mealsError}</p>}
+      {error && <p className="text-red-500">{error}</p>}
 
       {/* Recipe grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {recipes.map((recipe) => (
-          <RecipeCard key={recipe.idMeal} recipe={recipe} onClick={handleCardClick} />
+          <RecipeCard  key={recipe.idMeal} recipe={recipe} onClick={handleCardClick} />
         ))}
       </div>
 
       {/* No results found */}
-      {recipes.length === 0 && !mealsLoading && query && (
+      {recipes.length === 0 && !loading && query && (
         <p className="text-center text-gray-500">No results found.</p>
-      )}
+      )}    
 
       <RecipeModal recipe={selectedRecipe} open={modalOpen} onClose={handleCloseModal} />
     </div>
